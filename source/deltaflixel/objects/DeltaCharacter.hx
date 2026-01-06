@@ -52,7 +52,6 @@ class DeltaCharacter extends FunkinSprite
 		frames = Paths.getFrames(data.spritesheet);
 		scale.set(data.scale,data.scale);
 		for (anim in data.animations) {
-			var autoIndices = [];
 			addAnim(anim.name, anim.prefix + "0", anim.fps, anim.loop, false, anim.indices == null ? [] : anim.indices);
 			if (anim.offset != null)
 				addOffset(anim.name, anim.offset[0], anim.offset[1]);
