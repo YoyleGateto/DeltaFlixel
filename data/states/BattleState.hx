@@ -16,6 +16,7 @@ import deltaflixel.objects.DeltaCharacter;
 import deltaflixel.objects.DeltaEnemy;
 import deltaflixel.objects.BattleButton;
 import deltaflixel.objects.FightBox;
+import deltaflixel.objects.HealthBox;
 
 scripts = Reflect.hasField(data, "scripts") ? data.scripts : "none";
 _characters = Reflect.hasField(data, "characters") ? data.characters : "none";
@@ -57,6 +58,7 @@ var menuItems:Array<String> = ["fight", "act", "item", "spare", "defend"];
 var groupMenuItems:FlxTypedGroup = [];
 var textOptions:FlxTypedGroup = [];
 var fightBoxes:FlxTypedGroup = [];
+var healthBoxes:FlxTypedGroup = [];
 
 public var gridBack:FlxBackdrop;
 public var grid:FlxBackdrop;
@@ -93,9 +95,9 @@ function create() {
 	
 	tpBar = new FlxBar(0, 0, FlxBarFillDirection.RIGHT_TO_LEFT, 859, 100, null, "", 0, 100);
 	tpBar.createImageBar(Paths.image("ui/battle/tpBar_empty"), Paths.image("ui/battle/tpBar_filled"));
-	tpBar.setPosition(-300,280);
+	tpBar.setPosition(-320,250);
 	tpBar.angle = 90;
-	tpBar.scale.set(0.6, 0.6);
+	tpBar.scale.set(0.5, 0.6);
 	tpBar.antialiasing = false;
 	tpBar.numDivisions = 500;
 	tpBar.cameras = [camUI];
@@ -104,11 +106,11 @@ function create() {
 	tpLabel = new FlxSprite().loadGraphic(Paths.image("ui/battle/tp"));
 	tpLabel.scale.set(2,2);
 	tpLabel.updateHitbox();
-	tpLabel.setPosition(50, 150);
+	tpLabel.setPosition(30, 150);
 	tpLabel.cameras = [camUI];
 	add(tpLabel);
 	
-	tpText = new FlxText(55, tpLabel.y + 90);
+	tpText = new FlxText(35, tpLabel.y + 90);
 	tpText.setFormat(Paths.font("main.ttf"), 56, FlxColor.WHITE, 0, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 	tpText.borderSize = 3;
 	tpText.borderQuality = 1;
@@ -140,30 +142,6 @@ function create() {
 	portrait.cameras = [camUI];
 	portrait.visible = false;
 	add(portrait);
-	
-	hpBar = new FlxBar(0, 0, FlxBar.FILL_LEFT_TO_RIGHT, 175, 18, null, "", 0, 1);
-	hpBar.cameras = [camUI];
-	add(hpBar);
-	
-	hpLabel = new FlxSprite().loadGraphic(Paths.image("ui/battle/hp"));
-	hpLabel.scale.set(2.25,2.25);
-	hpLabel.updateHitbox();
-	hpLabel.cameras = [camUI];
-	add(hpLabel);
-	
-	hpText = new FlxText();
-	hpText.setFormat(Paths.font("small.ttf"), 29, FlxColor.WHITE, "right");
-	hpText.fieldWidth = hpBar.width;
-	hpText.cameras = [camUI];
-	add(hpText);
-	
-	name = new FunkinBitmapText(0, 0, "name", " ABCDEFGHIJKLMNOPQRSTUVWXYZ", 11, 18, "", 2.5);
-	name.cameras = [camUI];
-	add(name);
-	
-	icon = new FlxSprite();
-	icon.cameras = [camUI];
-	add(icon);
 	
 	textOptHP = new FlxBar(10,10, FlxBar.FILL_LEFT_TO_RIGHT, 200, 50, null, "", 0, 1);
 	textOptHP.cameras = [camUI];
@@ -232,11 +210,14 @@ function create() {
 		add(character);
 		undos.push(0);
 		char_acts.push("");
-		var box = new FightBox((FlxG.width/2)-240, 25 + 85*i, character);
-		add(box.icon);
-		add(box.box);
-		add(box.bar);
+		var box = new FightBox(120, (hudBase.y+75) + 75*i, character);
+		for (spr in [box, box.icon, box.boxBar, box.bar]) add(spr);
+		box.camera = camUI;
 		fightBoxes.push(box);
+		var hpBox = new HealthBox((FlxG.width / 2) - (((characters.length / 2) - i) * 424), hudBase.y, character);
+		for (spr in [hpBox, hpBox.boxOverlay, hpBox.hpBar, hpBox.hpText, hpBox.hpMax, hpBox.name, hpBox.icon]) add(spr);
+		hpBox.camera = camUI;
+		healthBoxes.push(hpBox);
 	}
 	for (i=>enemy in enemies) {
 		enemy.camera = overworldFront;
@@ -247,6 +228,8 @@ function create() {
 	playMusic("RudeBuster", 0.5, true, true);
 	
 	if (scripts != "none") for (path in scripts) importScript(path);
+	
+	updateHealthBoxes();
 }
 
 public function changeAction(number:Int = 0){
@@ -264,40 +247,10 @@ function update() {
 		targetCharacter = turn;
 	tensionPoints = FlxMath.bound(tensionPoints, 0, 100);
 	targetCharacter = FlxMath.bound(targetCharacter, 0, characters.length-1);
-	var char = characters[targetCharacter];
-	if (icon != null) {
-		icon.loadGraphic(Paths.image("ui/battle/icons/" + char.icon));
-		icon.scale.set(2,2);
-		icon.updateHitbox();
-		icon.y = hudBase.y + 14;
-	}
-	if (name != null) {
-		name.text = char.name.toUpperCase();
-		name.updateHitbox();
-		name.y = hudBase.y + 18;
-		name.x = icon.x + (icon.width + 12);
-	}
+	var hpRef = healthBoxes[targetCharacter];
 	if (dialouge != null) {
-		dialouge.setPosition(45, hudBase.y + 100);
+		dialouge.setPosition(50, hudBase.y + 100);
 	}
-	if (hpLabel != null) {
-		hpLabel.x = name.x + (name.width + 12);
-		hpLabel.y = hudBase.y + 46;
-	}
-	if (hpBar != null) {
-		hpBar.createFilledBar(0xFFAA0000, char.color);
-		hpBar.value = char.hp/char.maxHP;
-		hpBar.x = hpLabel.x + (hpLabel.width + 12);
-		hpBar.y = hpLabel.y;
-	}
-	if (hpText != null) {
-		hpText.text = char.hp + "/" + char.maxHP;
-		hpText.color = char.hp <= 0 ? FlxColor.RED : (char.hp <= char.maxHP/4 ? FlxColor.YELLOW : FlxColor.WHITE);
-		hpText.x = hpBar.x;
-		hpText.y = hudBase.y + 14;
-	}
-	var width = (hpBar.x + hpBar.width) - icon.x;
-	icon.x = (FlxG.width - width) / 2;
 	if (tpText != null) {
 		if (tensionPoints >= 100) {
 			tpText.text = "M\nA\nX";
@@ -309,8 +262,8 @@ function update() {
 	}
 	//tpBar.value = CoolUtil.fpsLerp(tpBar.value, tensionPoints, 0.1);
 	for (i=>item in groupMenuItems) {
-		item.x = ((FlxG.width/2) - (40*groupMenuItems.length)) + (80*i);
-		item.y = hudBase.y - 75;
+		item.x = hpRef.x + (((hpRef.width/2) - (40*groupMenuItems.length)) + (80*i));
+		item.y = hudBase.y + 15;
 	}
 	if (state == "actions") {
 		for (i=>enemy in enemies) {
@@ -509,7 +462,7 @@ function update() {
 	}
 	if (state == "FightState") {
 		for (i=>box in fightBoxes) {
-			box.alpha = characters[i].choices[0] == 0 ? 1 : 0;
+			box.visible = characters[i].choices[0] == 0;
 			box.canUpdate = characters[i].choices[0] == 0;
 			box.canPress = (i == fightTurn);
 			var enemy = enemies[characters[i].choices[1]];
@@ -519,7 +472,7 @@ function update() {
 				if (box.accuracy >= 0.95)
 					box.bar.color = FlxColor.YELLOW;
 				if (box.accuracy >= 0)
-					tensionPoints += 10*box.accuracy;
+					tensionPoints += 24;
 				playSound("slash", true);
 				new FlxTimer().start(0.32, () -> {
 					if (box.accuracy > 0) {
@@ -542,13 +495,15 @@ function update() {
 						character.playAnim("idle", true);
 						character.choices = [0,0,0,0,0,0];
 					}
+					updateHealthBoxes();
 					timerThatRunsWhenTheFightThingEnds = null;
-					for (box in fightBoxes) {
-				    	box.canUpdate = false;
-					    box.alpha = 0;
-				    }
 				});
 			}
+		}
+	}else{
+		for (box in fightBoxes) {
+			if(box.canUpdate) box.canUpdate = false;
+			if(box.visible) box.visible = false;
 		}
 	}
 	for (i=>character in characters) {
@@ -591,6 +546,7 @@ function update() {
 	}
 	if (deadChars == characters.length) FlxG.resetState();
 	for (box in fightBoxes) box.update(keys.ACCEPT);
+	for (box in healthBoxes) box.update();
 	if (enemies.length <= 0 && state != "win") {
 		eventName = "youWon";
 		events[eventName] = [
@@ -618,6 +574,7 @@ function updateTextOptions() {
 }
 public function nextTurn() {
 	turn += 1;
+	updateHealthBoxes();
 	if (turn >  characters.length-1)  {
 		state = "events";
 		eventName = "postPlayerTurn";
@@ -649,6 +606,7 @@ public function nextTurn() {
 				character.playAnim("idle", true);
 				character.choices = [0,0,0,0,0,0];
 			}
+			updateHealthBoxes();
 		});
 		handleEvent();
 	} else
@@ -657,6 +615,7 @@ public function nextTurn() {
 
 public function prevTurn() {
 	turn -= 1;
+	updateHealthBoxes();
 	if (undos[turn] != 0) {
 		tensionPoints -= undos[turn];
 		undos[turn] = 0;
@@ -693,5 +652,23 @@ public function setPartyPosition(x, y, y_separation) {
 public function setEnemiesPosition(x, y, y_separation) {
 	enemy_x = x;
 	for (i=>enemy in enemies) enemy.y = y + ((y_separation/enemies.length) * (enemies.length < 2 ? 0.25 : i));
+}
 
+function updateHealthBoxes() {
+	for (i=>character in characters) {
+		hpBox = healthBoxes[i];
+		if (hpBox.tween != null) {
+			hpBox.tween.cancel();
+		}
+		if (i == turn) {
+			hpBox.tween = FlxTween.tween(hpBox, {y: hudBase.y - 76}, 0.25, { ease: FlxEase.quadOut });
+			hpBox.enableColor = true;
+			hpBox.loadGraphic(Paths.image("ui/battle/activeBox"));
+		} else {
+			hpBox.tween = FlxTween.tween(hpBox, {y: hudBase.y}, 0.25, { ease: FlxEase.quadOut });
+			hpBox.enableColor = false;
+			hpBox.loadGraphic(Paths.image("ui/battle/inactiveBox"));
+		}
+		hpBox.updateHitbox();
+	}
 }
