@@ -12,8 +12,8 @@
 
 ## Take a Look!
 <img alt="Menu Preview" src="https://github.com/user-attachments/assets/a4ff5c3c-efc9-4f36-a487-12d023ebb9dc" />
-<img alt="Battle Preview" src="https://github.com/user-attachments/assets/90b59fa7-6e00-4d71-a31a-f805a89529d1" />
-<img alt="Overworld Preview" src="https://github.com/user-attachments/assets/211d8580-1b39-4e6d-8e52-3a1ccf24d0a1" />
+<img alt="Overworld Preview" src="https://github.com/user-attachments/assets/90b59fa7-6e00-4d71-a31a-f805a89529d1" />
+<img alt="Battle Preview" src="https://github.com/user-attachments/assets/5a53f33e-4af9-4a3f-881b-790eb89d5b22" />
 
 ## Downloads
 [![FUNNY DOWNLOAD BUTTON](https://img.shields.io/badge/-DEVELOPMENT%20VERSION-blue?style=for-the-badge&logo=github&labelColor=gray&)](https://github.com/HogosoKrikoso/DeltaFlixel/archive/refs/heads/main.zip)
