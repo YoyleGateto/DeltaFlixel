@@ -1,30 +1,29 @@
-class FightBox
+class FightBox extends FlxSprite
 {
-	public var x = 0;
-	public var y = 0;
-	public var alpha:Float = 0;
-	public var visible = true;
 	public var accuracy = 0;
 	public var canUpdate = false;
 	public var canPress = false;
 	public var pressed = false;
 	public var icon:FlxSprite;
-	public var box:FlxSprite;
+	public var boxBar:FlxSprite;
 	public var bar:FlxSprite;
 	public var barAlpha:Float = 1;
-	public function new(xPos, yPos, character)
+	public var character:DeltaCharacter;
+	public function new(x, y, char)
 	{
-		x = xPos;
-		y = yPos;
-		icon = new FlxSprite().loadGraphic(Paths.image('ui/battle/icons/' + character.icon));
-		icon.cameras = [camUI];
+		super(x,y);
+		character = char;
+		loadGraphic(Paths.image('ui/battle/fightBox'));
+		scale.set(2,2);
+		updateHitbox();
+		icon = new FlxSprite();
 		icon.scale.set(2.5,2.5);
-		icon.updateHitbox();
-		box = new FlxSprite().loadGraphic(Paths.image('ui/battle/boxFight'));
-		box.cameras = [camUI];
-		box.color = character.color;
-		bar = new FlxSprite().makeGraphic(18, 76,FlxColor.WHITE);
-		bar.cameras = [camUI];
+		boxBar = new FlxSprite().loadGraphic(Paths.image('ui/battle/fightBoxBar'));
+		boxBar.scale.set(2,2);
+		boxBar.updateHitbox();
+		bar = new FlxSprite().loadGraphic(Paths.image('ui/battle/fightBar'));
+		bar.scale.set(2,2);
+		bar.updateHitbox();
 	}
 	
 	public function resetX()
@@ -32,17 +31,25 @@ class FightBox
 		
 	public function update(keyPress)
 	{
-		icon.alpha = box.alpha = alpha;
+		icon.loadGraphic(Paths.image('ui/battle/icons/' + character.icon));
+		icon.updateHitbox();
+		for (spr in [icon, boxBar, bar]) {
+			if(spr.alpha != alpha) spr.alpha = alpha;
+			if(spr.visible != visible) spr.visible = visible;
+			if(spr.cameras != cameras) spr.cameras = cameras;
+			if(spr.camera != camera) spr.camera = camera;
+		}
+		boxBar.color = character.attackBarColor;
+		color = character.attackBoxColor;
 		bar.alpha = alpha*barAlpha;
-		icon.visible = box.visible = bar.visible = visible;
-		icon.setPosition(x,y);
-		box.setPosition(x+100,y);
-		bar.setPosition(box.x+box.width,y+4);
+		icon.setPosition(x-100,y);
+		boxBar.setPosition(x+4,y+4);
+		bar.setPosition(x+width,y+4);
 		if (canUpdate) {
-			accuracy = reverseMin(bar.offset.x/box.width, 1);
+			accuracy = reverseMin(bar.offset.x/width, 1);
 			if (keyPress && bar.offset.x >= 50 && canPress && !pressed)
 				pressed = true;
-			if (bar.offset.x >= (box.width+75)) {
+			if (bar.offset.x >= (width+75)) {
 				accuracy = 0;
 				pressed = true;
 				canUpdate = false;
@@ -54,9 +61,9 @@ class FightBox
 				bar.scale.x += 0.1;
 				bar.scale.y += 0.1;
 			}else{
-				bar.offset.x += 300 / getFPS();
+				bar.offset.x += 150 / getFPS();
 				barAlpha = 1;
-				bar.scale.set(1,1);
+				bar.scale.set(2,2);
 			}
 		}
 	}
