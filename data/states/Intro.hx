@@ -20,7 +20,7 @@ function create(){
 	logo.sinOffset = 200;
 	logo.screenCenter();
 	logo.init();
-	logo.antialiasing = true;
+	add(logo);
 	FlxTween.tween(logo, {sinOffset: 0}, 2.57142857);
 	noise = playSound("intronoise");
 }
