@@ -59,7 +59,7 @@ function new() {
 	}
 	for (key in defaultSettings.keys()) if (!Reflect.hasField(DeltaFlixelOptions.data, key))
 		Reflect.setField(DeltaFlixelOptions.data, key, defaultSettings[key]);
-	setGameResolution(1280, 960, false);
+	setGameResolution(1280, 960);
 	buttonPositions = [
 		"joystick" => [100, FlxG.height-460],
 		"accept" => [FlxG.width - 400, FlxG.height-260],
@@ -150,10 +150,7 @@ function destroy() {
 	setGameResolution(1280, 720);
 }
 
-function setGameResolution(realWidth:Int, realHeight:Int, ?keepQuality:Bool = false){
-	var scale:Float = keepQuality ? Math.max(realWidth/1280, realHeight/720) : 1;
-	var width:Int = Math.floor(realWidth/scale);
-	var height:Int = Math.floor(realHeight/scale);
+public static function setGameResolution(width:Int, height:Int){
     FlxG.resizeWindow(width, height);
     FlxG.resizeGame(width, height);
     FlxG.scaleMode.width = FlxG.width = FlxG.initialWidth = width;
