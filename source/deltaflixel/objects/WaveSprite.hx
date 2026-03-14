@@ -1,9 +1,3 @@
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.group.FlxTypedGroup;
-import flixel.util.FlxColor;
-import flixel.FlxState;
-
 class WaveSprite extends FlxSprite
 {
     public var lines:FlxTypedGroup<FlxSprite> = new FlxTypedGroup<FlxSprite>();
@@ -19,16 +13,17 @@ class WaveSprite extends FlxSprite
 		state.add(lines); 
 	}
 	
-    override public function destroy() {
+    public function destroy() {
         lines.destroy();
         super.destroy();
 	}
 	
-	public function update(elapsed:Float)
+	public function update(?elapsed)
 	{
+		visible = false;
         for (i=>spr in lines.members) {
             spr.alpha = alpha;
-            spr.visible = visible;
+            spr.visible = true;
             spr.cameras = cameras;
             spr.color = color;
             spr.scale = scale;
