@@ -22,6 +22,8 @@ scripts = Reflect.hasField(data, "scripts") ? data.scripts : "none";
 _characters = Reflect.hasField(data, "characters") ? data.characters : "none";
 _enemies = Reflect.hasField(data, "enemies") ? data.enemies : "none";
 
+public var dialougeStartupText:String;
+
 public var characters:Array = [];
 public var enemies:Array = [];
 
@@ -134,7 +136,7 @@ function create() {
 	
 	dialouge = new FlxText();
 	dialouge.setFormat(Paths.font("main.ttf"), 56, FlxColor.WHITE, "left");	dialouge.fieldWidth = FlxG.width - (dialouge.x+45);
-	dialouge.text = "* cheezborger";
+	dialouge.text = "* Cheezborger";
 	dialouge.cameras = [camUI];
 	add(dialouge);
 	
@@ -200,7 +202,7 @@ function create() {
 	
 	eventName = "startup";
 	events[eventName] = [
-		() -> doTextStuff("* Cheese.", false, true, "default", null, 0.05),
+		() -> doTextStuff(dialougeStartupText == null ? "* Wait, what?!|w|w|w\nNow in Friday Night Funkin?!|w|w|w\nGOD, Seek for some mental help!" : dialougeStartupText, false, true, "default", null, 0.05),
 	];
 	handleEvent();
 	
@@ -216,6 +218,7 @@ function create() {
 		fightBoxes.push(box);
 		var hpBox = new HealthBox((FlxG.width / 2) - (((characters.length / 2) - i) * 424), hudBase.y, character);
 		for (spr in [hpBox, hpBox.boxOverlay, hpBox.hpBar, hpBox.hpText, hpBox.hpMax, hpBox.name, hpBox.icon]) add(spr);
+		insert(members.indexOf(hudBase)+1, hpBox.boxBehindOverlay);
 		hpBox.camera = camUI;
 		healthBoxes.push(hpBox);
 	}
@@ -230,16 +233,23 @@ function create() {
 	if (scripts != "none") for (path in scripts) importScript(path);
 	
 	updateHealthBoxes();
+	
+	for (box in fightBoxes) {
+		if(box.canUpdate) box.canUpdate = false;
+		if(box.visible) box.visible = false;
+	}
 }
 
 public function changeAction(number:Int = 0){
 	curAction = FlxMath.wrap(curAction + number, 0, menuItems.length-1);
 	playSound("menu/scroll", true);
 }
+
 public function changeSel(number:Int = 0){
 	curSel = FlxMath.wrap(curSel + number, 0, textOptions.length-1);
 	playSound("menu/scroll", true);
 }
+
 function update() {
 	dialouge.fieldWidth = FlxG.width - (45 - dialouge.offset.x);
 	if (keys.MENU) FlxG.resetState();
@@ -262,7 +272,7 @@ function update() {
 	}
 	//tpBar.value = CoolUtil.fpsLerp(tpBar.value, tensionPoints, 0.1);
 	for (i=>item in groupMenuItems) {
-		item.x = hpRef.x + (((hpRef.width/2) - (40*groupMenuItems.length)) + (80*i));
+		item.x = hpRef.x + 7 + (((hpRef.width/2) - (40*groupMenuItems.length)) + (80*i));
 		item.y = hudBase.y + 15;
 	}
 	if (state == "actions") {
@@ -465,45 +475,33 @@ function update() {
 			box.visible = characters[i].choices[0] == 0;
 			box.canUpdate = characters[i].choices[0] == 0;
 			box.canPress = (i == fightTurn);
-			var enemy = enemies[characters[i].choices[1]];
-			if (enemy.hp <= 0) characters[i].choices[0] = -1;
-			if (i == fightTurn && characters[i].choices[0] != 0) fightTurn += 1;
-			if (i == fightTurn && box.pressed) {
-				if (box.accuracy >= 0.95)
-					box.bar.color = FlxColor.YELLOW;
-				if (box.accuracy >= 0)
-					tensionPoints += 24;
-				playSound("slash", true);
-				new FlxTimer().start(0.32, () -> {
-					if (box.accuracy > 0) {
-						enemy.hurt(Math.floor(((characters[i].attack*(box.accuracy*100))/20)-(3*characters[i].defense)));
-						new FlxTimer().start(0.32, (tmr) -> {
-							enemy.playAnim("idle", true);
-						});
-					}
-				});
-				characters[i].playAnim("attack", false);
-				fightTurn += 1;
+			if (characters[i].choices[0] == 0) {
+				var enemy = enemies[characters[i].choices[1]];
+				if (enemy.hp <= 0) characters[i].choices[0] = -1;
+				if (i == fightTurn && box.pressed) {
+					if (box.accuracy >= 0.95)
+						box.bar.color = FlxColor.YELLOW;
+					if (box.accuracy >= 0)
+						tensionPoints += 24;
+					playSound("slash", true);
+					new FlxTimer().start(0.32, () -> {
+						if (box.accuracy > 0) {
+							enemy.hurt(Math.floor(((characters[i].attack*(box.accuracy*100))/20)-(3*characters[i].defense)));
+							new FlxTimer().start(0.32, (tmr) -> {
+								enemy.playAnim("idle", true);
+							});
+						}
+					});
+					characters[i].playAnim("attack", false);
+					fightTurn += 1;
+				}
 			}
+			if (i == fightTurn && characters[i].choices[0] != 0) fightTurn += 1;
 		}
 		if (fightTurn >= characters.length) {
 			if (timerThatRunsWhenTheFightThingEnds == null) {
-				timerThatRunsWhenTheFightThingEnds = new FlxTimer().start(1, (tmr) -> {
-					state = "actions";
-					turn = 0;
-					for (character in characters) {
-						character.playAnim("idle", true);
-						character.choices = [0,0,0,0,0,0];
-					}
-					updateHealthBoxes();
-					timerThatRunsWhenTheFightThingEnds = null;
-				});
+				timerThatRunsWhenTheFightThingEnds = new FlxTimer().start(1, resetTurns);
 			}
-		}
-	}else{
-		for (box in fightBoxes) {
-			if(box.canUpdate) box.canUpdate = false;
-			if(box.visible) box.visible = false;
 		}
 	}
 	for (i=>character in characters) {
@@ -572,6 +570,23 @@ function updateTextOptions() {
 		text.alpha = (o.data.tp == null || (o.data.tp != null && tensionPoints >= o.data.tp)) ? 1 : 0.5;
 	}
 }
+
+function resetTurns() {
+	FlxG.state.call("onTurnsReset");
+	state = "actions";
+	turn = 0;
+	for (character in characters) {
+		character.playAnim("idle", true);
+		character.choices = [0,0,0,0,0,0];
+	}
+	updateHealthBoxes();
+	timerThatRunsWhenTheFightThingEnds = null;
+	for (box in fightBoxes) {
+		if(box.canUpdate) box.canUpdate = false;
+		if(box.visible) box.visible = false;
+	}
+}
+
 public function nextTurn() {
 	turn += 1;
 	updateHealthBoxes();
@@ -600,13 +615,7 @@ public function nextTurn() {
 			state = "FightState";
 		});
 		else events[eventName].push(() -> {
-			state = "actions";
-			turn = 0;
-			for (character in characters) {
-				character.playAnim("idle", true);
-				character.choices = [0,0,0,0,0,0];
-			}
-			updateHealthBoxes();
+			resetTurns();
 		});
 		handleEvent();
 	} else
@@ -644,19 +653,20 @@ public function removeFromArray(id, array) {
 	return t;
 }
 
-public function setPartyPosition(x, y, y_separation) {
+public function setPartyPosition(x, y, max_height) {
 	player_x = x;
-	for (i=>character in characters) character.y = y + ((y_separation/characters.length) * (characters.length < 2 ? 0.25 : i));
+	for (i=>character in characters) character.y = y + ((max_height/characters.length) * (characters.length < 2 ? 0.25 : i));
 }
 
-public function setEnemiesPosition(x, y, y_separation) {
+public function setEnemiesPosition(x, y, max_height) {
 	enemy_x = x;
-	for (i=>enemy in enemies) enemy.y = y + ((y_separation/enemies.length) * (enemies.length < 2 ? 0.25 : i));
+	for (i=>enemy in enemies) enemy.y = y + ((max_height/enemies.length) * (enemies.length < 2 ? 0.25 : i));
 }
 
 function updateHealthBoxes() {
 	for (i=>character in characters) {
 		hpBox = healthBoxes[i];
+		hpBox.boxBehindOverlay.y = hudBase.y;
 		if (hpBox.tween != null) {
 			hpBox.tween.cancel();
 		}

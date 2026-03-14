@@ -2,34 +2,31 @@ import flixel.text.FlxTextBorderStyle;
 import Xml;
 import flixel.util.FlxSort;
 import flixel.FlxObject;
+import haxe.ds.StringMap;
 
 using StringTools;
 
 _characters = Reflect.hasField(data, "_characters") ? data._characters : "none";
-
 public var roomName = Reflect.hasField(data, "_room") ? data._room : "test";
-
 public var spawnID = Reflect.hasField(data, "_spawn") ? data._spawn : "main";
-
 public var characters = [];
-
 public var camUI = new FlxCamera(0, 0, FlxG.width, FlxG.height);
 for (u in [camUI]) {
 	u.bgColor = 0;
 	FlxG.cameras.add(u, false);
 }
-
-public var tilesets = ["q" => ""];
-public var tilemaps = ["u" => ""];
-public var tilemapCollisions = ["e" => false];
-public var sprites = ["s" => ""];
-public var spawnPoints = ["o" => ""];
+public var tilesets = new StringMap();
+public var tilemaps = new StringMap();
+public var tilemapCollisions = new StringMap();
+public var sprites = new StringMap();
+public var spawnPoints = new StringMap();
 public var worldBounds = [0,0,0,0];
 public var roomTitle = "";
 public var roomWidth = 0;
 public var roomHeight = 0;
 public var tileWidth = 0;
 public var tileHeight = 0;
+public var inCustcene = false;
 
 function objectsOverlap(a, b) {
 	var overlap = false;
@@ -41,9 +38,9 @@ function objectsOverlap(a, b) {
 function makeObjectsCollide(a, b) if (objectsOverlap(a, b)) FlxObject.separate(a, b);
 
 public function gotoRoom(room, spawn) FlxG.switchState(new ModState("World", {
-	_room = room,
-	_spawn = spawn,
-	_characters = characters,
+	_room: room,
+	_spawn: spawn,
+	_characters: characters,
 }));
 
 function create(){
@@ -85,7 +82,7 @@ function create(){
 function update(){
 	if (keys.MENU) FlxG.resetState();
 	dialouge.fieldWidth = overworldDialougeBox.width - (100 - dialouge.offset.x);
-	for (i=>character in characters) {
+	for (i=>character in characters) if(!inCustcene) {
 		var follow = (i - 1) < 0 ? null : characters[i - 1];
 		character.overworldUpdate(follow);
 		character.x = FlxMath.bound(character.x, worldBounds[0], worldBounds[2]);
@@ -168,8 +165,6 @@ function loadRoom(roomName){
 		}
 	}
 	if (Assets.exists("data/rooms/" + roomName + ".hx")) importScript("data/rooms/" + roomName);
-    if (roomElement.exists("music")) playMusic(roomElement.get("music"), roomElement.exists("musicVolume") ? Std.parseFloat(roomElement.get("musicVolume")) : 1, true);
-    else FlxG.sound.music.stop();
 }
 
 function parseTilemapData(str, width)
@@ -249,5 +244,4 @@ function createSpriteFromXMLElement(element) {
 
 class OverworldSprite extends FunkinSprite {
 	public var collideMode:String = "none";
-
 }

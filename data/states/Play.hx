@@ -15,23 +15,6 @@ var goner:FlxSound = FlxG.sound.load(Paths.sound("goner_drone"));
 goner.looped = true;
 goner.play();
 
-var tileset:FlxSrpite = new FlxSprite().loadGraphic(Paths.image("castle"),40,40);
-tileset.scale.set(1,1);
-tileset.updateHitbox();
-var tiles:Array<Dynamic> = [
-	{
-		tilesetX: 0,
-		tilesetY: 0,
-		x: 0,
-		y: 0
-	},
-	{
-		tilesetX: 1,
-		tilesetY: 1,
-		x: 0,
-		y: 1
-	},
-];
 function create(){
 	FlxG.camera.y = -100;
 	FlxG.camera.flashSprite.scaleX = 0.1;

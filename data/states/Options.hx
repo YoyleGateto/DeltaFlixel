@@ -37,7 +37,6 @@ function create(){
 	soul.scale.set(3, 3);
 	soul.updateHitbox();
 	add(soul);
-    playMusic("quiet_church", 1, true);
 }
 
 function changeSelection(number:Int = 0){
@@ -83,5 +82,4 @@ function update(e:Float) {
 		DeltaFlixelOptions.flush();
 		FlxG.switchState(new ModState("Menu"));
 	}
-
 }
