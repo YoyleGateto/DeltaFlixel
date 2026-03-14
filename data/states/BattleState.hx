@@ -543,8 +543,6 @@ function update() {
 		}
 	}
 	if (deadChars == characters.length) FlxG.resetState();
-	for (box in fightBoxes) box.update(keys.ACCEPT);
-	for (box in healthBoxes) box.update();
 	if (enemies.length <= 0 && state != "win") {
 		eventName = "youWon";
 		events[eventName] = [
@@ -572,6 +570,8 @@ function updateTextOptions() {
 }
 
 function resetTurns() {
+	textTimer.cancel();
+	conditionFunction = null;
 	FlxG.state.call("onTurnsReset");
 	state = "actions";
 	turn = 0;
@@ -585,6 +585,11 @@ function resetTurns() {
 		if(box.canUpdate) box.canUpdate = false;
 		if(box.visible) box.visible = false;
 	}
+	eventName = "startup";
+	events[eventName] = [
+		() -> doTextStuff(dialougeStartupText == null ? "* Wait, what?!|w|w|w\nNow in Friday Night Funkin?!|w|w|w\nGOD, Seek for some mental help!" : dialougeStartupText, false, true, "default", null, 0.05),
+	];
+	handleEvent();
 }
 
 public function nextTurn() {
