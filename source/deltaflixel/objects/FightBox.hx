@@ -29,7 +29,7 @@ class FightBox extends FlxSprite
 	public function resetX()
 		bar.offset.x = 0;
 		
-	public function update(keyPress)
+	public function update(?elapsed)
 	{
 		icon.loadGraphic(Paths.image('ui/battle/icons/' + character.icon));
 		icon.updateHitbox();
@@ -47,7 +47,7 @@ class FightBox extends FlxSprite
 		bar.setPosition(x+width,y+4);
 		if (canUpdate) {
 			accuracy = reverseMin(bar.offset.x/width, 1);
-			if (keyPress && bar.offset.x >= 50 && canPress && !pressed)
+			if (keys.ACCEPT && bar.offset.x >= 50 && canPress && !pressed)
 				pressed = true;
 			if (bar.offset.x >= (width+75)) {
 				accuracy = 0;
@@ -61,7 +61,7 @@ class FightBox extends FlxSprite
 				bar.scale.x += 0.1;
 				bar.scale.y += 0.1;
 			}else{
-				bar.offset.x += 150 / getFPS();
+				bar.offset.x += 300 / getFPS();
 				barAlpha = 1;
 				bar.scale.set(2,2);
 			}
