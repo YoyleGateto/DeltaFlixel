@@ -1,5 +1,6 @@
 class HealthBox extends FlxSprite {
 	var character:DeltaCharacter;
+	var boxBehindOverlay:FlxSprite;
 	var boxOverlay:FlxSprite;
 	var hpBar:FlxBar;
 	var hpText:FlxText;
@@ -12,6 +13,11 @@ class HealthBox extends FlxSprite {
 	public function new(X, Y, Character) {
 		super(X, Y);
 		character = Character;
+		
+		boxBehindOverlay = new FlxSprite(X, Y).loadGraphic(Paths.image("ui/battle/thingBelowActiveBox"));
+		boxBehindOverlay.scale.set(2,2);
+		boxBehindOverlay.updateHitbox();
+		
 		loadGraphic(Paths.image("ui/battle/activeBox"));
 		scale.set(2,2);
 		updateHitbox();
@@ -37,15 +43,17 @@ class HealthBox extends FlxSprite {
 	
 	public function update(?elapsed)
 	{
-		for (spr in [boxOverlay, hpBar, hpText, hpMax, name, icon]) {
+		for (spr in [boxBehindOverlay, boxOverlay, hpBar, hpText, hpMax, name, icon]) {
 			if(spr.alpha != alpha) spr.alpha = alpha;
 			if(spr.visible != visible) spr.visible = visible;
 			if(spr.cameras != cameras) spr.cameras = cameras;
 			if(spr.camera != camera) spr.camera = camera;
 		}
-		boxOverlay.x = x;
+		boxOverlay.x = boxBehindOverlay.x = x;
 		boxOverlay.y = y;
 		color = enableColor ? character.color : FlxColor.WHITE;
+		boxBehindOverlay.color = character.color;
+		if (!enableColor) boxBehindOverlay.visible = false;
 		if (icon != null) {
 			icon.loadGraphic(Paths.image("ui/battle/icons/" + character.icon));
 			icon.scale.set(2.1, 2.1);
