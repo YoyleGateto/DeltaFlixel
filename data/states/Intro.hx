@@ -27,7 +27,6 @@ function create(){
 
 var variant:Int = 0;
 function update(e:Float) {
-	logo.update(e);
 	if (fadeOut___) {
 		var random = FlxG.random.bool(50);
 		if (random) {
